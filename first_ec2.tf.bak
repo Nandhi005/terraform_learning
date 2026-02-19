@@ -1,0 +1,50 @@
+provider "aws" {
+    region = "ap-south-1"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-0ffef61f6dc37ae89"
+  instance_type = "t2.micro"
+  vpc_security_group_ids = ["sg-0031387a79189a0eb"]
+  count =3
+  depends_on = 
+  tags = {
+    Name = "First_terraform_ec2-${count.index}"
+  }
+  lifecycle {
+    ignore_changes = [tags]
+    create_before_destroy = true
+    prevent_destroy = true
+  }
+}
+resource "aws_iam_user" "lb" {
+  name = var.iam_user[count.index]
+  path = "/system/"
+  count = 2
+  tags = {
+    tag-key = "tag-value"
+  }
+}
+# resource "aws_eip" "lb" {
+#   domain   = "vpc"
+# }
+resource "aws_security_group" "allow_tls" {
+  name        = "terraform-security-group"
+  description = "Allow TLS inbound traffic and all outbound traffic"
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
+  security_group_id = aws_security_group.allow_tls.id
+  cidr_ipv4         = "0.0.0.0/32"
+  from_port         = var.app_port
+  ip_protocol       = "tcp"
+  to_port           = var.app_port_to_port
+}
+resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
+  security_group_id = aws_security_group.allow_tls.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1" # semantically equivalent to all ports
+}

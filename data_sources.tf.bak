@@ -1,0 +1,10 @@
+provider "aws" {
+    region = "ap-south-1"
+  }
+data "aws_instances" "test" {
+#     filter {
+#     name   = "tag:Name"
+#     values = ["node_exporter"]
+#   }
+  instance_state_names = ["stopped"]
+}

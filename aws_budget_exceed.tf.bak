@@ -1,0 +1,10 @@
+provider "aws" {
+  region = var.region
+}
+
+data "aws_budgets_budget" "example" {
+    name="My Zero-Spend Budget"
+  }
+output "budget_value" {
+    value = data.aws_budgets_budget.example.budget_limit["amount"]
+}
